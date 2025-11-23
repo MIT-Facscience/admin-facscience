@@ -34,7 +34,7 @@ import { useToast } from "@/hooks/use-toast"
 import { BasePerson, COFAC, doyenEtVice, PAT, Person, PersonType, Professeur } from "@/services/types/person"
 // import { createOptions, getSelectOptions } from "@/services/api/option.api"
 import { options } from "@/services/types/option"
-import {  usePeople } from "@/hooks/usePeople"
+import { usePeople } from "@/hooks/usePeople"
 import { useImageFallback } from "@/hooks/usePerson"
 
 
@@ -57,11 +57,11 @@ const typeSpecificFields: Record<PersonType, (formData: any) => Partial<Person>>
 
 export function PeopleManagement() {
 
-  
+
   const [activeTab, setActiveTab] = useState<PersonType>("pat")
-  const { people, selectOptions, createOpt, createNewPerson , updatePersons , removePerson } = usePeople(activeTab);
+  const { people, allPeople, selectOptions, createOpt, createNewPerson, updatePersons, removePerson } = usePeople(activeTab);
   const [addOptionType, setAddOptionType] = useState<keyof options>("postAffectations")
-  
+
   const { error, handleError, src } = useImageFallback()
 
   const [searchTerm, setSearchTerm] = useState("")
@@ -73,7 +73,7 @@ export function PeopleManagement() {
   const [formData, setFormData] = useState({
     nom: "",
     prenom: "",
-    sexe : "",
+    sexe: "",
     email: "",
     tel: "",
     type: "pat" as PersonType,
@@ -101,7 +101,7 @@ export function PeopleManagement() {
     setFormData({
       nom: "",
       prenom: "",
-      sexe : "",
+      sexe: "",
       email: "",
       tel: "",
       type: activeTab,
@@ -123,19 +123,15 @@ export function PeopleManagement() {
       });
       return;
     }
-  
-      await createOpt(addOptionType, { nom: newOptionValue.trim() });
-      await createOpt(addOptionType, { nom: newOptionValue.trim() });
-  
-  
-      setNewOptionValue("");
-      setIsAddOptionDialogOpen(false);
-      toast({
-        title: "Succès",
-        description: "Option ajoutée avec succès",
-      });
 
+    await createOpt(addOptionType, { nom: newOptionValue.trim() });
 
+    setNewOptionValue("");
+    setIsAddOptionDialogOpen(false);
+    toast({
+      title: "Succès",
+      description: "Option ajoutée avec succès",
+    });
   };
 
   const openAddOptionDialog = (optionType: keyof options) => {
@@ -144,14 +140,14 @@ export function PeopleManagement() {
   }
 
   const handleAdd = async () => {
-  if (!formData.nom || !formData.email) {
-    toast({
-      title: "Erreur",
-      description: "Veuillez remplir tous les champs obligatoires",
-      variant: "destructive",
-    });
-    return;
-  }
+    if (!formData.nom || !formData.email) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Champs communs
     const basePerson: Omit<Person, "id"> = {
@@ -172,7 +168,6 @@ export function PeopleManagement() {
 
     // Appel API générique
     await createNewPerson(personData);
-    await createNewPerson(personData);
 
     // Mettre à jour l'état
     setIsAddDialogOpen(false);
@@ -182,86 +177,84 @@ export function PeopleManagement() {
       title: "Succès",
       description: "Personne ajoutée avec succès",
     });
+  };
 
 
-};
+  const handleEdit = (person: Person) => {
+    setEditingPerson(person)
 
+    switch (person.type) {
+      case "pat":
+        setFormData({
+          nom: person.nom,
+          prenom: person.prenom,
+          sexe: person.sexe,
+          email: person.email,
+          tel: person.tel,
+          type: person.type,
+          postAffectation: person.postAffectation,
+          grade: person.grade,
+          fonction: person.fonction,
+          titre: "",
+          appartenance: "",
+          responsabilite: "",
+        })
+        break
 
-const handleEdit = (person: Person) => {
-  setEditingPerson(person)
+      case "professeur":
+        setFormData({
+          nom: person.nom,
+          prenom: person.prenom,
+          sexe: person.sexe,
+          email: person.email,
+          tel: person.tel,
+          type: person.type,
+          titre: person.titre,
+          postAffectation: "",
+          grade: "",
+          fonction: "",
+          appartenance: "",
+          responsabilite: "",
+        })
+        break
 
-  switch (person.type) {
-    case "pat":
-      setFormData({
-        nom: person.nom,
-        prenom: person.prenom,
-        sexe: person.sexe,
-        email: person.email,
-        tel: person.tel,
-        type: person.type,
-        postAffectation: person.postAffectation,
-        grade: person.grade,
-        fonction: person.fonction,
-        titre: "",
-        appartenance: "",
-        responsabilite: "",
-      })
-      break
+      case "cofac":
+        setFormData({
+          nom: person.nom,
+          prenom: person.prenom,
+          sexe: person.sexe,
+          email: person.email,
+          tel: person.tel,
+          type: person.type,
+          appartenance: person.appartenance,
+          postAffectation: "",
+          grade: "",
+          fonction: "",
+          titre: "",
+          responsabilite: "",
+        })
+        break
 
-    case "professeur":
-      setFormData({
-        nom: person.nom,
-        prenom: person.prenom,
-        sexe: person.sexe,
-        email: person.email,
-        tel: person.tel,
-        type: person.type,
-        titre: person.titre,
-        postAffectation: "",
-        grade: "",
-        fonction: "",
-        appartenance: "",
-        responsabilite: "",
-      })
-      break
+      case "doyen_et_vice":
+        setFormData({
+          nom: person.nom,
+          prenom: person.prenom,
+          sexe: person.sexe,
+          email: person.email,
+          tel: person.tel,
+          type: person.type,
+          responsabilite: person.responsabilite,
+          postAffectation: "",
+          grade: "",
+          fonction: "",
+          titre: "",
+          appartenance: "",
+        })
+        break
+    }
 
-    case "cofac":
-      setFormData({
-        nom: person.nom,
-        prenom: person.prenom,
-        sexe: person.sexe,
-        email: person.email,
-        tel: person.tel,
-        type: person.type,
-        appartenance: person.appartenance,
-        postAffectation: "",
-        grade: "",
-        fonction: "",
-        titre: "",
-        responsabilite: "",
-      })
-      break
-
-    case "doyen_et_vice":
-      setFormData({
-        nom: person.nom,
-        prenom: person.prenom,
-        sexe: person.sexe,
-        email: person.email,
-        tel: person.tel,
-        type: person.type,
-        responsabilite: person.responsabilite,
-        postAffectation: "",
-        grade: "",
-        fonction: "",
-        titre: "",
-        appartenance: "",
-      })
-      break
+    setIsEditDialogOpen(true)
   }
-
-  setIsEditDialogOpen(true)
-}
 
 
   const handleUpdate = async () => {
@@ -273,7 +266,7 @@ const handleEdit = (person: Person) => {
       });
       return;
     }
-  
+
     try {
       // Construire l'objet à envoyer à l'API
       const personToUpdate: BasePerson & { type: string } = {
@@ -298,16 +291,16 @@ const handleEdit = (person: Person) => {
           responsabilite: formData.responsabilite,
         }),
       };
-      
+
       // Appel API pour mettre à jour
       await updatePersons(personToUpdate);
-  
 
-  
+
+
       setIsEditDialogOpen(false);
       setEditingPerson(null);
       resetForm();
-  
+
       toast({
         title: "Succès",
         description: "Personne mise à jour avec succès",
@@ -320,13 +313,13 @@ const handleEdit = (person: Person) => {
       });
     }
   };
-  
+
   const handleDelete = async (person: Person) => {
     try {
       // Appel à l'API pour supprimer la personne
       await removePerson(person);
-  
-  
+
+
       toast({
         title: "Succès",
         description: `Personne "${person.prenom} ${person.nom}" supprimée avec succès`,
@@ -340,7 +333,7 @@ const handleEdit = (person: Person) => {
       });
     }
   };
-  
+
   const getPersonTypeBadge = (type: PersonType) => {
     const colors = {
       pat: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
@@ -544,10 +537,10 @@ const handleEdit = (person: Person) => {
 
   const getTabCounts = () => {
     return {
-      pat: people.filter((p) => p.type === "pat").length,
-      professeur: people.filter((p) => p.type === "professeur").length,
-      cofac: people.filter((p) => p.type === "cofac").length,
-      doyen_et_vice: people.filter((p) => p.type === "doyen_et_vice").length,
+      pat: allPeople.filter((p) => p.type === "pat").length,
+      professeur: allPeople.filter((p) => p.type === "professeur").length,
+      cofac: allPeople.filter((p) => p.type === "cofac").length,
+      doyen_et_vice: allPeople.filter((p) => p.type === "doyen_et_vice").length,
     }
   }
 
@@ -562,7 +555,7 @@ const handleEdit = (person: Person) => {
         </div>
         <div className="hidden md:flex  items-center gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-university-primary">{people.length}</div>
+            <div className="text-2xl font-bold text-university-primary">{allPeople.length}</div>
             <div className="text-xs text-muted-foreground">Total</div>
           </div>
           {/* <div className="text-center">
@@ -584,12 +577,12 @@ const handleEdit = (person: Person) => {
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button
-                    className="bg-university-primary rounded-full w-10 h-10 sm:w-fit sm:rounded-lg hover:bg-university-primary/90"                  
-                    onClick={() => setFormData({ ...formData, type: activeTab })}
+                  className="bg-university-primary rounded-full w-10 h-10 sm:w-fit sm:rounded-lg hover:bg-university-primary/90"
+                  onClick={() => setFormData({ ...formData, type: activeTab })}
                 >
                   <Plus className="h-4 w-4" />
                   <div className="hidden sm:block">Ajouter {activeTab}</div>
-                  
+
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[500px]">
@@ -727,7 +720,7 @@ const handleEdit = (person: Person) => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                        <TableHead>Image</TableHead>
+                          <TableHead>Image</TableHead>
 
                           <TableHead>Nom</TableHead>
                           <TableHead>Contact</TableHead>
@@ -741,20 +734,20 @@ const handleEdit = (person: Person) => {
                         {filteredPeople.map((person) => (
                           <TableRow key={person.id}>
 
-                              <TableCell>
-                                    <div className="flex items-center">
-                                      {!error ? (
-                                        <img
-                                          src={src(`/images/${person.id}.jpg`)}
-                                          alt={`${person.prenom} ${person.nom}`}
-                                          className="w-10 h-10 rounded-full object-cover"
-                                          onError={handleError}
-                                        />
-                                      ) : (
-                                        <UserIcon className="w-10 h-10 text-gray-400" />
-                                      )}
-                                    </div>
-                                  </TableCell>
+                            <TableCell>
+                              <div className="flex items-center">
+                                {!error ? (
+                                  <img
+                                    src={src(`/images/${person.id}.jpg`)}
+                                    alt={`${person.prenom} ${person.nom}`}
+                                    className="w-10 h-10 rounded-full object-cover"
+                                    onError={handleError}
+                                  />
+                                ) : (
+                                  <UserIcon className="w-10 h-10 text-gray-400" />
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell>
                               <div>
                                 <div className="font-medium">

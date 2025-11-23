@@ -6,28 +6,28 @@ function handleError(error: any): never {
     if (error instanceof TypeError) {
         throw new Error('Erreur de connexion au serveur. Vérifiez votre connexion internet.');
     }
-    
+
     if (error instanceof SyntaxError) {
         throw new Error('Erreur de format des données reçues du serveur.');
     }
-    
+
     if (error instanceof Error) {
         throw error;
     }
-    
+
     throw new Error('Une erreur inattendue s\'est produite.');
 }
 
 export async function getAllPersons(): Promise<BasePerson[]> {
     try {
         const response = await fetch(`${baseURL}/api/Personne`);
-        
+
         if (!response.ok) {
             throw new Error(`Erreur HTTP lors de la récupération des personnes: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Transformer les données du backend en format frontend
         return data.map((person: any) => ({
             id: person.id,
@@ -60,7 +60,14 @@ export async function createPerson(person: BasePersonWithoutId & { type: string 
                 prenom: person.prenom,
                 email: person.email,
                 tel: person.tel,
-                dateInsertion: person.dateInsertion || new Date().toISOString()
+                dateInsertion: person.dateInsertion || new Date().toISOString(),
+                type: person.type,
+                postAffectation: person.postAffectation,
+                grade: person.grade,
+                fonction: person.fonction,
+                titre: person.titre,
+                appartenance: person.appartenance,
+                responsabilite: person.responsabilite
             }),
         });
 
@@ -69,7 +76,7 @@ export async function createPerson(person: BasePersonWithoutId & { type: string 
         }
 
         const createdPerson = await response.json();
-        
+
         // Retourner dans le format frontend
         return {
             id: createdPerson.idPersonne,
@@ -103,7 +110,14 @@ export async function updatePerson(person: BasePerson & { type: string }): Promi
                 prenom: person.prenom,
                 email: person.email,
                 tel: person.tel,
-                dateInsertion: person.dateInsertion
+                dateInsertion: person.dateInsertion,
+                type: person.type,
+                postAffectation: person.postAffectation,
+                grade: person.grade,
+                fonction: person.fonction,
+                titre: person.titre,
+                appartenance: person.appartenance,
+                responsabilite: person.responsabilite
             }),
         });
 
@@ -140,10 +154,10 @@ export async function getPersonsByType<T extends BasePerson>(type: string): Prom
 export async function getPerson<T extends BasePerson>(type: string, id: number): Promise<T> {
     const allPersons = await getAllPersons();
     const person = allPersons.find(p => p.id === id && p.type === type);
-    
+
     if (!person) {
         throw new Error(`Personne non trouvée avec l'ID ${id} et le type ${type}`);
     }
-    
+
     return person as T;
 }

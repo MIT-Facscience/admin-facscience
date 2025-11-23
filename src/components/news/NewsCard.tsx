@@ -1,6 +1,16 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Calendar, MapPin, Edit, Trash2, Image as ImageIcon } from "lucide-react"
 import { Actualite } from "@/services/types/event"
 
@@ -10,7 +20,7 @@ interface NewsCardProps {
   onDelete: (id: number) => void
   onManageMedia: (news: Actualite) => void
   onStatusChange: (idActualite: number, newStatus: "draft" | "published" | "archived") => void
-  getStatusBadge: (statut: "draft" | "published" | "archived") => JSX.Element
+  getStatusBadge: (statut: "draft" | "published" | "archived") => React.JSX.Element
 }
 
 export function NewsCard({
@@ -21,9 +31,6 @@ export function NewsCard({
   onStatusChange,
   getStatusBadge,
 }: NewsCardProps) {
-  // Assurez-vous que medias est toujours un tableau
-  const medias = news.medias || []
-
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -48,7 +55,7 @@ export function NewsCard({
         <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
           {news.description || "Aucune description"}
         </p>
-        
+
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
@@ -59,7 +66,7 @@ export function NewsCard({
             <Edit className="h-3 w-3" />
             Modifier
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -69,16 +76,36 @@ export function NewsCard({
             <ImageIcon className="h-3 w-3" />
             Médias
           </Button>
-          
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => onDelete(news.idActualite!)}
-            className="flex items-center gap-1"
-          >
-            <Trash2 className="h-3 w-3" />
-            Supprimer
-          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <Trash2 className="h-3 w-3" />
+                Supprimer
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Êtes-vous sûr de vouloir supprimer l'actualité "{news.titre}" ? Cette action est irréversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete(news.idActualite!)}
+                  className="bg-destructive hover:bg-destructive/90"
+                >
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {/* Boutons de changement de statut */}

@@ -1,6 +1,6 @@
 import { baseURL } from "..";
 import { upcomingEvents } from "../mocked-data";
-import { Actualite, Category} from "../types/event";
+import { Actualite, Category } from "../types/event";
 
 export const getClosestEvent = async () => {
   try {
@@ -32,11 +32,11 @@ export async function createCategory(name: string) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nom: name }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Erreur HTTP lors de la création de catégorie : ${response.status}`);
     }
-    
+
     return response.json();
   } catch (error) {
     handleError(error, 'création de catégorie');
@@ -48,7 +48,7 @@ export async function getCategory(): Promise<Category[]> {
     const res = await fetch(`${baseURL}/api/CategorieActualite`);
     if (!res.ok) throw new Error(`Erreur lors de la récupération des category`);
     const data = await res.json();
-    
+
     // Mapping des données backend vers le format frontend
     return data.map((cat: any) => ({
       id: cat.id || cat.Id,
@@ -64,11 +64,11 @@ export async function deleteCategory(id: number) {
     const response = await fetch(`${baseURL}/api/CategorieActualite/${id}`, {
       method: 'DELETE'
     });
-    
+
     if (!response.ok) {
       throw new Error(`Erreur HTTP lors de la suppression de catégorie`);
     }
-    
+
     return response.json();
   } catch (error) {
     handleError(error, 'suppression de catégorie');
@@ -102,12 +102,12 @@ export async function createNews(data: Actualite) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(backendData),
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
     }
-    
+
     return response.json();
   } catch (error) {
     console.error('❌ Erreur lors de la création d\'actualité:', error);
@@ -134,12 +134,12 @@ export async function UpdateNews(data: Actualite) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(backendData),
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
     }
-    
+
     return response.json();
   } catch (error) {
     console.error('❌ Erreur lors de la mise à jour d\'actualité:', error);
@@ -150,13 +150,13 @@ export async function UpdateNews(data: Actualite) {
 export async function getNews(): Promise<Actualite[]> {
   try {
     const response = await fetch(`${baseURL}/api/Actualite/all`);
-    
+
     if (!response.ok) {
       throw new Error(`Erreur HTTP lors de la récupération d'actualités: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     // Mapping depuis le DTO backend vers votre interface frontend
     return data.map((item: any) => ({
       idActualite: item.id,
@@ -173,7 +173,8 @@ export async function getNews(): Promise<Actualite[]> {
       medias: item.listMedia || item.ListMedia || [] // Assurez-vous d'avoir les médias
     }));
   } catch (error) {
-    handleError(error, 'récupération d\'actualités');
+    console.error('Erreur lors de la récupération d\'actualités:', error);
+    throw error;
   }
 }
 
@@ -182,14 +183,20 @@ export async function deleteNews(id: number) {
     const response = await fetch(`${baseURL}/api/Actualite/${id}`, {
       method: 'DELETE'
     });
-    
+
     if (!response.ok) {
       throw new Error(`Erreur HTTP lors de la suppression d'actualité: ${response.status}`);
     }
-    
-    return response.json();
+
+    // DELETE peut ne pas retourner de contenu, vérifier si la réponse a un corps
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return response.json();
+    }
+    return true; // Succès sans contenu
   } catch (error) {
-    handleError(error, 'suppression d\'actualité');
+    console.error('Erreur lors de la suppression d\'actualité:', error);
+    throw error;
   }
 }
 
@@ -198,19 +205,20 @@ export async function createMedia(idActualite: number, data: File) {
   try {
     const formData = new FormData();
     formData.append('file', data);
-    
+
     const response = await fetch(`${baseURL}/api/Media/actualite/${idActualite}`, {
       method: "POST",
       body: formData,
     });
-    
+
     if (!response.ok) {
       throw new Error(`Erreur HTTP lors de l'ajout de média: ${response.status}`);
     }
-    
+
     return response.json();
   } catch (error) {
-    handleError(error, 'ajout de média');
+    console.error('Erreur lors de l\'ajout de média:', error);
+    throw error;
   }
 }
 
@@ -219,14 +227,15 @@ export async function deleteMedia(idActualite: number, id_media: number) {
     const response = await fetch(`${baseURL}/api/Media/actualite/${idActualite}/${id_media}`, {
       method: 'DELETE'
     });
-    
+
     if (!response.ok) {
       throw new Error(`Erreur HTTP lors de la suppression de média: ${response.status}`);
     }
-    
+
     return response.json();
   } catch (error) {
-    handleError(error, 'suppression de média');
+    console.error('Erreur lors de la suppression de média:', error);
+    throw error;
   }
 }
 
@@ -236,20 +245,21 @@ export async function updateStatus(idActualite: number, statut: string): Promise
     const data = {
       statut: statut
     };
-    
+
     const response = await fetch(`${baseURL}/api/Actualite/${idActualite}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Erreur HTTP lors de la mise à jour du statut`);
     }
-    
+
     return response.json();
   } catch (error) {
-    handleError(error, 'mise à jour du statut');
+    console.error('Erreur lors de la mise à jour du statut:', error);
+    throw error;
   }
 }
 
@@ -258,28 +268,28 @@ function handleError(error: unknown, context: string): never {
   if (error instanceof TypeError) {
     throw new Error(`Erreur de connexion au serveur lors de la ${context}. Vérifiez votre connexion internet.`);
   }
-  
+
   if (error instanceof SyntaxError) {
     throw new Error(`Erreur de format des données reçues du serveur lors de la ${context}.`);
   }
-  
+
   if (error instanceof Error) {
     throw error;
   }
-  
+
   throw new Error(`Une erreur inattendue s'est produite lors de la ${context}.`);
 }
 
 export async function getActualites(): Promise<Actualite[]> {
   try {
     const response = await fetch(`${baseURL}/api/Actualite`);
-    
+
     if (!response.ok) {
       throw new Error(`Erreur HTTP: ${response.status}`);
     }
-    
+
     const actualites = await response.json();
-    
+
     // Transformer les dates si nécessaire
     return actualites.map((actu: any) => ({
       ...actu,

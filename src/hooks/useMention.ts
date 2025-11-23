@@ -28,14 +28,16 @@ export function useMention() {
     setLoading(true);
     setError(null);
     try {
-      const data: Mention = await mentionApi.create(newMention);
+      await mentionApi.create(newMention);
       const activity = {
         title: "Ajout mention",
         time: new Date().toDateString(),
         status: "success",
       };
       addActivity(activity);
-      setMentions(prev => [data, ...prev]);
+      addActivity(activity);
+      // Rafraîchir la liste complète pour garantir la cohérence
+      await fetchAll();
     } catch (err: any) {
       setError(err.message || "Erreur lors de la création de la mention");
     } finally {
@@ -48,49 +50,49 @@ export function useMention() {
     setLoading(true);
     setError(null);
     try {
-      const data = await mentionApi.update(id_, updateData);
-  
+      await mentionApi.update(id_, updateData);
+
       const activity = {
         title: "Mise à jour mention",
         time: new Date().toDateString(),
         status: "success",
       };
       addActivity(activity);
-  
+
       // Remplace la mention mise à jour dans la liste
-      setMentions(prev =>
-        prev.map(m => (m.id_mention === id_ ? data : m))
-      );
+      // Rafraîchir la liste complète
+      await fetchAll();
     } catch (err: any) {
       setError(err.message || "Erreur lors de la mise à jour de la mention");
     } finally {
       setLoading(false);
     }
   }, []);
-  
+
 
   // Supprimer une mention
-  const removeMention = useCallback(async (id_: number) => {
+  const removeMention = useCallback(async (idMention: number) => {
     setLoading(true);
     setError(null);
     try {
-      await mentionApi.remove(id_);
-  
+      await mentionApi.remove(idMention);
+
       const activity = {
         title: "Suppression mention",
         time: new Date().toDateString(),
         status: "success",
       };
       addActivity(activity);
-  
+
       // Supprime localement la mention du state
-      setMentions(prev => prev.filter(m => m.id_mention !== id_));
+      // Rafraîchir la liste complète
+      await fetchAll();
     } catch (err: any) {
       setError(err.message || "Erreur lors de la suppression de la mention");
     } finally {
       setLoading(false);
     }
-  }, []);  
+  }, []);
 
   useEffect(() => {
     fetchAll();

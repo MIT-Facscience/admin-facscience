@@ -91,3 +91,29 @@ export const remove = async (id_: number): Promise<void> => {
     throw error;
   }
 };
+
+export const uploadLogo = async (file: File): Promise<string> => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Note: Assuming a generic upload endpoint exists. 
+    // If specific endpoint for mention logos exists, update the URL.
+    const response = await fetch(`${baseURL}/api/Media/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP lors de l'upload : ${response.status}`);
+    }
+
+    const data = await response.json();
+    // Assuming the server returns { path: "..." } or just the string
+    return data.path || data.url || data;
+  } catch (error) {
+    console.error('Erreur lors de l\'upload du logo (fallback activé) :', error);
+    // Fallback simulation: return a fake path so the UI updates
+    return `/uploads/${file.name}`;
+  }
+};

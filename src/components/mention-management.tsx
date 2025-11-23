@@ -31,6 +31,7 @@ import { Plus, Search, Edit, Trash2, GraduationCap } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { Mention } from "@/services/types/mention"
 import { useMention } from "@/hooks/useMention"
+import { uploadLogo } from "@/services/api/mention.api"
 
 export function MentionManagement() {
   const { mentions, createMention, updateMention, removeMention } = useMention();
@@ -38,6 +39,7 @@ export function MentionManagement() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingMention, setEditingMention] = useState<Mention | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     nomMention: "",
@@ -85,7 +87,7 @@ export function MentionManagement() {
         nomMention: formData.nomMention,
         abbreviation: formData.abbreviation,
         descriptionMention: formData.descriptionMention,
-        logoPath: formData.logoPath || null,
+        logoPath: formData.logoPath || undefined,
         laboratoireIds: [1] // juste les IDs
       };
 
@@ -106,6 +108,30 @@ export function MentionManagement() {
         description: "Impossible d’ajouter la mention. Vérifiez les champs.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsUploading(true);
+      try {
+        const path = await uploadLogo(file);
+        setFormData(prev => ({ ...prev, logoPath: path }));
+        toast({
+          title: "Succès",
+          description: "Logo téléchargé avec succès",
+        });
+      } catch (error) {
+        console.error("Erreur upload:", error);
+        toast({
+          title: "Erreur",
+          description: "Échec du téléchargement du logo",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -140,8 +166,8 @@ export function MentionManagement() {
         descriptionMention: formData.descriptionMention,
         logoPath: formData.logoPath,
         laboratoires: formData.laboratoires,
-        mentionNiveauParcours: [],
-        preinscriptions: [],
+        mentionNiveauParcours: [] as any[],
+        preinscriptions: [] as any[],
       });
 
       setIsEditDialogOpen(false);
@@ -204,99 +230,111 @@ export function MentionManagement() {
             </CardTitle>
 
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex justify-between rounded-full w-10 h-10 md:w-fit md:rounded-md items-center bg-university-primary hover:bg-university-primary/90">
-                <Plus className="h-4 w-4 mr-2" />
-                <div className="hidden md:block">Ajouter une Mention</div>
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Ajouter une Nouvelle Mention</DialogTitle>
-                <DialogDescription>
-                  Remplissez les informations pour créer une nouvelle mention académique.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="grid gap-4 py-4">
-                {/* Nom */}
-                <div className="grid gap-2">
-                  <Label htmlFor="nom">Nom de la mention *</Label>
-                  <Input
-                    id="nom"
-                    value={formData.nomMention}
-                    onChange={(e) => setFormData({ ...formData, nomMention: e.target.value })}
-                    placeholder="Ex: Informatique"
-                  />
-                </div>
-
-                {/* Abbreviation */}
-                <div className="grid gap-2">
-                  <Label htmlFor="abbreviation">Abbreviation *</Label>
-                  <Input
-                    id="abbreviation"
-                    value={formData.abbreviation}
-                    onChange={(e) => setFormData({ ...formData, abbreviation: e.target.value })}
-                    placeholder="Ex: INFO"
-                  />
-                </div>
-
-                {/* Description */}
-                <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.descriptionMention}
-                    onChange={(e) =>
-                      setFormData({ ...formData, descriptionMention: e.target.value })
-                    }
-                    placeholder="Description de la mention..."
-                  />
-                </div>
-
-                {/* Logo */}
-                <div className="grid gap-2">
-                  <Label htmlFor="logoPath">Chemin du logo</Label>
-                  <Input
-                    id="logoPath"
-                    value={formData.logoPath}
-                    onChange={(e) => setFormData({ ...formData, logoPath: e.target.value })}
-                    placeholder="Ex: logo_info.png"
-                  />
-                </div>
-
-                {/* Laboratoire (option simple avec ID numérique pour commencer) */}
-                <div className="grid gap-2">
-                  <Label htmlFor="laboratoire">ID Laboratoire</Label>
-                  <Input
-                    id="laboratoire"
-                    type="number"
-                    value={formData.laboratoires[0]?.idLaboratoire || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        laboratoires: [{ idLaboratoire: Number(e.target.value) }],
-                      })
-                    }
-                    placeholder="Ex: 1"
-                  />
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Annuler
+              <DialogTrigger asChild>
+                <Button className="flex justify-between rounded-full w-10 h-10 md:w-fit md:rounded-md items-center bg-university-primary hover:bg-university-primary/90">
+                  <Plus className="h-4 w-4 mr-2" />
+                  <div className="hidden md:block">Ajouter une Mention</div>
                 </Button>
-                <Button
-                  onClick={handleAdd}
-                  className="bg-university-primary hover:bg-university-primary/90"
-                >
-                  Ajouter
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Ajouter une Nouvelle Mention</DialogTitle>
+                  <DialogDescription>
+                    Remplissez les informations pour créer une nouvelle mention académique.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="grid gap-4 py-4">
+                  {/* Nom */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="nom">Nom de la mention *</Label>
+                    <Input
+                      id="nom"
+                      value={formData.nomMention}
+                      onChange={(e) => setFormData({ ...formData, nomMention: e.target.value })}
+                      placeholder="Ex: Informatique"
+                    />
+                  </div>
+
+                  {/* Abbreviation */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="abbreviation">Abbreviation *</Label>
+                    <Input
+                      id="abbreviation"
+                      value={formData.abbreviation}
+                      onChange={(e) => setFormData({ ...formData, abbreviation: e.target.value })}
+                      placeholder="Ex: INFO"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.descriptionMention}
+                      onChange={(e) =>
+                        setFormData({ ...formData, descriptionMention: e.target.value })
+                      }
+                      placeholder="Description de la mention..."
+                    />
+                  </div>
+
+                  {/* Logo */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="logoPath">Chemin du logo</Label>
+                    <Input
+                      id="logoPath"
+                      value={formData.logoPath}
+                      onChange={(e) => setFormData({ ...formData, logoPath: e.target.value })}
+                      placeholder="Ex: logo_info.png"
+                    />
+                    <div className="mt-2">
+                      <Label htmlFor="logo-upload" className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 w-full">
+                        {isUploading ? "Téléchargement..." : "Choisir un fichier"}
+                      </Label>
+                      <Input
+                        id="logo-upload"
+                        type="file"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        accept="image/*"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Laboratoire (option simple avec ID numérique pour commencer) */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="laboratoire">ID Laboratoire</Label>
+                    <Input
+                      id="laboratoire"
+                      type="number"
+                      value={formData.laboratoires[0]?.idLaboratoire || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          laboratoires: [{ idLaboratoire: Number(e.target.value) }],
+                        })
+                      }
+                      placeholder="Ex: 1"
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    Annuler
+                  </Button>
+                  <Button
+                    onClick={handleAdd}
+                    className="bg-university-primary hover:bg-university-primary/90"
+                  >
+                    Ajouter
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
           </div>
         </CardHeader>
@@ -357,7 +395,7 @@ export function MentionManagement() {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Annuler</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDelete(mention.idMention||0)}
+                                onClick={() => handleDelete(mention.idMention || 0)}
                                 className="bg-destructive hover:bg-destructive/90"
                               >
                                 Supprimer
@@ -386,7 +424,7 @@ export function MentionManagement() {
                     {/* {getStatusBadge(mention.statut)} */}
                   </div>
                 </div>
-                
+
                 {/* nomMention et description */}
                 <div className="mb-4">
                   <h3 className="font-semibold text-base mb-1">{mention.nomMention}</h3>
@@ -403,12 +441,12 @@ export function MentionManagement() {
                     <span className="text-sm text-muted-foreground">descriptionMention:</span>
                     <span className="text-sm font-medium">{mention.descriptionMention}</span>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Parcours:</span>
                     {/* <Badge variant="outline" className="text-xs">{mention.nombreParcours}</Badge> */}
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Date création:</span>
                     {/* <span className="text-sm">{new Date(mention.dateCreation).toLocaleDateString("fr-FR")}</span> */}
@@ -417,9 +455,9 @@ export function MentionManagement() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-3 border-t">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => handleEdit(mention)}
                     className="flex-1"
                   >
@@ -444,7 +482,7 @@ export function MentionManagement() {
                       <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                         <AlertDialogCancel className="w-full sm:w-auto">Annuler</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDelete(mention.idMention||0)}
+                          onClick={() => handleDelete(mention.idMention || 0)}
                           className="bg-destructive hover:bg-destructive/90 w-full sm:w-auto"
                         >
                           Supprimer
@@ -529,6 +567,18 @@ export function MentionManagement() {
                 }
                 placeholder="Ex: logo_info.png"
               />
+              <div className="mt-2">
+                <Label htmlFor="edit-logo-upload" className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 w-full">
+                  {isUploading ? "Téléchargement..." : "Choisir un fichier"}
+                </Label>
+                <Input
+                  id="edit-logo-upload"
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                />
+              </div>
             </div>
 
             {/* Labo (facultatif — juste ID, pas création) */}

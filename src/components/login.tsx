@@ -1,4 +1,4 @@
-import { useAuth } from "../context/auth-context";
+import { useAuth } from "../context/auth-context";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -13,7 +13,7 @@ export default function LoginForm() {
 
   // Récupérer l'URL de redirection après login
   const from = location.state?.from?.pathname || "/";
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -24,15 +24,15 @@ export default function LoginForm() {
     } catch (err: any) {
       setError(err.message || "Erreur de connexion");
     }
-  };  
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-zinc-900 p-4">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-800 p-8 rounded-2xl shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md bg-card p-8 ">
         <h1 className="text-2xl font-bold mb-2 text-center text-university-primary">
           Connexion
         </h1>
-        <p className="text-center text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+        <p className="text-center text-sm text-muted-foreground mb-6">
           Entrez vos identifiants pour continuer
         </p>
 
@@ -43,7 +43,7 @@ export default function LoginForm() {
             <input
               value={identifiant}
               onChange={(e) => setIdentifiant(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border dark:border-zinc-700 bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-university-primary transition"
+              className="w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-university-primary transition"
               placeholder="votre identifiant"
               required
             />
@@ -55,7 +55,7 @@ export default function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              className="w-full px-4 py-3 rounded-lg border dark:border-zinc-700 bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-university-primary transition"
+              className="w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-university-primary transition"
               placeholder="••••••••"
               required
             />
@@ -67,12 +67,12 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto text-white px-5 py-3 rounded-lg font-medium shadow-sm disabled:opacity-60 bg-university-primary hover:brightness-110 transition"
+              className="w-full sm:w-auto text-white px-5 py-3 rounded-lg font-medium disabled:opacity-60 bg-university-primary hover:brightness-110 transition"
             >
               {loading ? "Connexion..." : "Se connecter"}
             </button>
 
-            
+
           </div>
         </form>
       </div>

@@ -48,7 +48,7 @@ export function Dashboard() {
         {stats.map((stat) => {
           const Icon = stat.icon
           return (
-            <Card key={stat.title} className="hover:shadow-md transition-shadow">
+            <Card key={stat.title} className="transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
                 <Icon className={`h-4 w-4 ${stat.color}`} />
@@ -83,17 +83,16 @@ export function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {recentActivities.map((activity, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg">
                     <div
-                      className={`w-2 h-2 rounded-full mt-2 ${
-                        activity.status === "success"
-                          ? "bg-green-500"
-                          : activity.status === "warning"
-                            ? "bg-yellow-500"
-                            : activity.status === "info"
-                              ? "bg-blue-500"
-                              : "bg-gray-500"
-                      }`}
+                      className={`w-2 h-2 rounded-full mt-2 ${activity.status === "success"
+                        ? "bg-green-500"
+                        : activity.status === "warning"
+                          ? "bg-yellow-500"
+                          : activity.status === "info"
+                            ? "bg-blue-500"
+                            : "bg-gray-500"
+                        }`}
                     ></div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-foreground">{activity.title}</p>
